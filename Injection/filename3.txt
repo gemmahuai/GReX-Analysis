@@ -1,0 +1,6 @@
+/hdd/data/candidates/T2/cluster_output1709267515.cand
+/hdd/data/candidates/T2/cluster_output1709267751.cand
+/hdd/data/candidates/T2/cluster_output1709267829.cand
+/hdd/data/candidates/T2/cluster_output1709267987.cand
+/hdd/data/candidates/T2/cluster_output1709268144.cand
+/hdd/data/candidates/T2/cluster_output1709268301.cand

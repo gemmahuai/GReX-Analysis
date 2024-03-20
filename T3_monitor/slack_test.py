@@ -2,7 +2,7 @@
 
 import requests
 
-webhook_url = "https://hooks.slack.com/services/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"
+webhook_url = ""
 
 message = {
     "text": "Gotta get the bread and milk!"

@@ -42,7 +42,15 @@ def get_cand(JSON):
     return(tab)
     
 
-def gen_cand(fn_vol, fn_tempfil, fn_filout, JSON): # tab - json file
+def get_stokesi(fn_vol):
+    (stokesi, T0, dur) = ct.read_voltage_data(fn_vol, timedownsample=None, freqdownsample=None)
+    print('Done reading .nc and calc stokes I')
+    return(stokesi, T0, dur)
+
+
+
+
+def gen_cand(fn_tempfil, fn_filout,   tab,   stokesi,T0,dur): # tab - json file
     """
     Reads in a raw voltage file
     Calculates Stokes I 
@@ -52,10 +60,10 @@ def gen_cand(fn_vol, fn_tempfil, fn_filout, JSON): # tab - json file
     Downsamples the window
     ----------
     Inputs:
-    fn_vol = input voltage filename
     fn_tempfil = temporary filterbank file, will be removed after generating a plot
     fn_filout = output .fil filename
-    JSON = candidate .json filename (e.g. 240321aazm.json)
+    tab = get_cand(JSON)
+    (stokesi, T0, dur) = get_stokesi() output
     ----------
     Returns:
     cand = dedispersed, downsampled Candidate object by the YOUR package
@@ -63,16 +71,10 @@ def gen_cand(fn_vol, fn_tempfil, fn_filout, JSON): # tab - json file
     tab = .json table
     """
 
-    tab = get_cand(JSON)
     # t0 = tab["mjds"].values[0] # ToA of the candidate
     dt = 8.192e-6 # s 
     Dt = 4.15 * tab["dm"].values[0] * (1/1.28**2 - 1/1.53**2) / 1e3 # delay in seconds given DM
     
-    (stokesi, T0) = ct.read_voltage_data(fn_vol, timedownsample=None, freqdownsample=None)
-    print('Done reading .nc and calc stokes I')
-
-
-    dt = 8.192e-6
     window_width = int(Dt*2 / dt) # number of samples in the pulse window
     print('window size = ', window_width)
     # mm = int(stokesi.shape[0]/2) # temporarily choose the center of stokesi  # (t0-T0)*86400/dt 
@@ -172,11 +174,11 @@ def gen_cand(fn_vol, fn_tempfil, fn_filout, JSON): # tab - json file
     print('Done downsampling')
     print(cand.dedispersed.shape)
     print(cand.dmt.shape)
-    return(cand, T0, tab)
+    return(cand, dur*dt)
 
 
 
-def plot_grex(cand, T0, tab, JSON): 
+def plot_grex(cand, T0, dur, tab, JSON): 
 
     """
     Plots:
@@ -187,6 +189,7 @@ def plot_grex(cand, T0, tab, JSON):
     Inputs:
     cand = downsampled, dedispersed candidate object, the first output from gen_cand() function
     T0 = start time of the voltage file in MJD from gen_cand()
+    dur = duration of the entire netcdf file in seconds
     tab = candidate .json table from gen_cand()
     JSON = .json filename
     ----------
@@ -236,6 +239,7 @@ def plot_grex(cand, T0, tab, JSON):
         print('Too few samples to plot')
         return
 
+    logging.info(f"in plotting, mm = {mm}, time window = {window_time}")
 
     data_timestream = data_timestream[mm-window_time//2:mm+window_time//2]
     # Dedispersed pulse 
@@ -301,7 +305,7 @@ def plot_grex(cand, T0, tab, JSON):
     plt.scatter(cluster["mjds"][this_cand].values, 
                 cluster["dm"][this_cand].values, 
                 c=cluster['snr'][this_cand].values)
-    plt.xlabel('Time (MJD)')
+    plt.xlabel('Time (MJD)', fontsize=12)
     plt.ylabel('DM')
 
     # doesn't seem to work?
@@ -322,10 +326,10 @@ def plot_grex(cand, T0, tab, JSON):
     fig.text(0.1,0.83, 'Filename:'+JSON,
              fontsize = 12,fontweight='semibold')
     
-    if ((tab['mjds'].values[0]-T0)*86400>dur):
-        fig.text(0.55, 0.875, "Candidate not in this NetCDF file!", color='red')
+    # if ((tab['mjds'].values[0]-T0)*86400>dur):
+    #     fig.text(0.55, 0.875, "Candidate not in this NetCDF file!", color='red')
 
-    plt.savefig('/hdd/data/candidates/T3/candplots/grex_cand{}.pdf'.format(JSON.split('.')[0]), bbox_inches='tight')
+    plt.savefig('/hdd/data/candidates/T3/candplots/grex_cand{}.png'.format(JSON.split('.')[0]), bbox_inches='tight')
     
     plt.show()
 

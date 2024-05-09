@@ -1,2 +1,0 @@
-/hdd/data/candidates/T2/cluster_output1709674368.cand
-/hdd/data/candidates/T2/cluster_output1709674643.cand
